@@ -127,6 +127,3 @@ npm run preview
 - CSS3 (no external UI libraries)
 - Modern JavaScript (ES6+)
 
-## License
-
-ISC
