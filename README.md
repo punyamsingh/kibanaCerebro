@@ -27,7 +27,7 @@ A beautiful timeline-based log viewer for visualizing and analyzing JSON logs.
 
 ### 🎨 Visual Features
 
-- **Color-coded events**: Red (errors), Orange (warnings), Purple (payments), Blue (cart), Green (API), Gray (info)
+- **Color-coded events**: Red (errors), Orange (warnings), Green (API), Gray (info)
 - **Interactive boxes**: Click any log to view full JSON details
 - **Hover effects**: Scale animation and full tag name in tooltip
 - **Selection state**: Highlighted border for selected logs
