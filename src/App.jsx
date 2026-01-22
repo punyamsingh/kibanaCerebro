@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 import Timeline from './components/Timeline'
 import LogDetails from './components/LogDetails'
 import FileUpload from './components/FileUpload'
+import Footer from './components/Footer'
 
 function App() {
   const [allLogs, setAllLogs] = useState([]) // All logs from file
@@ -19,6 +20,7 @@ function App() {
   const [showMatchInput, setShowMatchInput] = useState(false) // Show input to manually enter match number
   const timelineRef = useRef(null)
   const matchInputRef = useRef(null)
+  const [showHelp, setShowHelp] = useState(false)
 
   const parseMessageTimestamp = (message) => {
     const aliceMatch = message.match(/^\d+:\|(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)[+-]\d{2}:\d{2}\|/)
@@ -468,7 +470,7 @@ function App() {
     console.log(`Found ${matches.length} matches for "${searchQuery}"`)
   }
 
-  const handleNextMatch = () => {
+  const handleNextMatch = useCallback(() => {
     if (searchMatches.length === 0) return
 
     const nextIndex = (currentMatchIndex + 1) % searchMatches.length
@@ -482,9 +484,9 @@ function App() {
       // In "show all" mode, scroll to the original index in all logs
       timelineRef.current.scrollToLog(showOnlyMatches ? nextIndex : logIndex)
     }
-  }
+  }, [searchMatches, currentMatchIndex, allLogs, showOnlyMatches])
 
-  const handlePreviousMatch = () => {
+  const handlePreviousMatch = useCallback(() => {
     if (searchMatches.length === 0) return
 
     const prevIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length
@@ -498,7 +500,7 @@ function App() {
       // In "show all" mode, scroll to the original index in all logs
       timelineRef.current.scrollToLog(showOnlyMatches ? prevIndex : logIndex)
     }
-  }
+  }, [searchMatches, currentMatchIndex, allLogs, showOnlyMatches])
 
   const handleToggleShowMode = () => {
     const newMode = !showOnlyMatches
@@ -546,8 +548,122 @@ function App() {
     setLogs(allLogs)
   }
 
+  const handleExportLogs = () => {
+    const dataStr = JSON.stringify(logs, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `logs-export-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  // Keyboard shortcuts - defined after the handler functions
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger shortcuts if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return
+      }
+
+      // ESC - Clear selection or close help
+      if (e.key === 'Escape') {
+        if (showHelp) {
+          setShowHelp(false)
+        } else if (selectedLog) {
+          setSelectedLog(null)
+        }
+        return
+      }
+
+      // ? - Show help
+      if (e.key === '?' && !showHelp) {
+        e.preventDefault()
+        setShowHelp(true)
+        return
+      }
+
+      // Arrow keys for search navigation
+      if (searchMatches.length > 0) {
+        if (e.key === 'ArrowRight' || e.key === 'n') {
+          e.preventDefault()
+          handleNextMatch()
+        } else if (e.key === 'ArrowLeft' || e.key === 'p') {
+          e.preventDefault()
+          handlePreviousMatch()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedLog, showHelp, searchMatches, currentMatchIndex, handleNextMatch, handlePreviousMatch])
+
   return (
     <div className="app">
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="modal-overlay" onClick={() => setShowHelp(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Keyboard Shortcuts & Help</h2>
+              <button className="modal-close" onClick={() => setShowHelp(false)} aria-label="Close help">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="help-section">
+                <h3>Keyboard Shortcuts</h3>
+                <div className="shortcut-list">
+                  <div className="shortcut-item">
+                    <kbd>?</kbd>
+                    <span>Show this help dialog</span>
+                  </div>
+                  <div className="shortcut-item">
+                    <kbd>ESC</kbd>
+                    <span>Close dialog or clear selection</span>
+                  </div>
+                  <div className="shortcut-item">
+                    <kbd>→</kbd> or <kbd>n</kbd>
+                    <span>Next search match</span>
+                  </div>
+                  <div className="shortcut-item">
+                    <kbd>←</kbd> or <kbd>p</kbd>
+                    <span>Previous search match</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="help-section">
+                <h3>Search Tips</h3>
+                <ul>
+                  <li>Use <code>AND</code> for matching all terms</li>
+                  <li>Use <code>OR</code> for matching any term</li>
+                  <li>Use quotes for exact phrases: <code>"error message"</code></li>
+                  <li>Use parentheses for complex queries: <code>(error OR warn) AND payment</code></li>
+                </ul>
+              </div>
+
+              <div className="help-section">
+                <h3>Features</h3>
+                <ul>
+                  <li>Drag the timeline to scroll horizontally</li>
+                  <li>Click any log box to view details</li>
+                  <li>Use time filters to narrow down logs</li>
+                  <li>Export filtered logs to JSON</li>
+                  <li>Toggle between showing all logs or only matches</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isLoading && (
         <div className="loading-overlay">
           <div className="loading-content">
@@ -564,7 +680,34 @@ function App() {
       <header className="app-header">
         <div className="header-left">
           <h1>Log Viewer - Timeline</h1>
-          {fileName && <span className="file-name">File: {fileName}</span>}
+          {fileName && <span className="file-name" role="status" aria-live="polite">File: {fileName}</span>}
+        </div>
+
+        <div className="header-actions">
+          <button 
+            className="help-btn" 
+            onClick={() => setShowHelp(true)} 
+            title="Keyboard shortcuts (Press ?)"
+            aria-label="Show help and keyboard shortcuts"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          {allLogs.length > 0 && (
+            <button 
+              className="export-btn" 
+              onClick={handleExportLogs}
+              title="Export filtered logs to JSON"
+              aria-label={`Export ${logs.length} logs to JSON`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Export ({logs.length})
+            </button>
+          )}
         </div>
 
         {allLogs.length > 0 && (
@@ -679,27 +822,36 @@ function App() {
       </header>
 
       {logs.length === 0 && allLogs.length === 0 ? (
-        <FileUpload onFileUpload={handleFileUpload} />
+        <>
+          <FileUpload onFileUpload={handleFileUpload} />
+          <Footer logCount={0} />
+        </>
       ) : logs.length === 0 && allLogs.length > 0 ? (
-        <div className="app-content">
-          <div className="no-results">
-            <h2>No logs found in this time range</h2>
-            <p>Try adjusting your time filter</p>
-            <button onClick={handleResetFilter} className="reset-btn-large">Reset Filter</button>
+        <>
+          <div className="app-content">
+            <div className="no-results">
+              <h2>No logs found in this time range</h2>
+              <p>Try adjusting your time filter</p>
+              <button onClick={handleResetFilter} className="reset-btn-large">Reset Filter</button>
+            </div>
           </div>
-        </div>
+          <Footer logCount={allLogs.length} />
+        </>
       ) : (
-        <div className="app-content">
-          <Timeline
-            ref={timelineRef}
-            logs={logs}
-            selectedLog={selectedLog}
-            onSelectLog={setSelectedLog}
-            searchMatches={searchMatches}
-            currentMatchIndex={currentMatchIndex}
-          />
-          <LogDetails log={selectedLog} searchQuery={searchQuery} />
-        </div>
+        <>
+          <div className="app-content">
+            <Timeline
+              ref={timelineRef}
+              logs={logs}
+              selectedLog={selectedLog}
+              onSelectLog={setSelectedLog}
+              searchMatches={searchMatches}
+              currentMatchIndex={currentMatchIndex}
+            />
+            <LogDetails log={selectedLog} searchQuery={searchQuery} />
+          </div>
+          <Footer logCount={allLogs.length} />
+        </>
       )}
     </div>
   )
