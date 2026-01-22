@@ -21,6 +21,36 @@ function App() {
   const timelineRef = useRef(null)
   const matchInputRef = useRef(null)
   const [showHelp, setShowHelp] = useState(false)
+  const [timezone, setTimezone] = useState('UTC') // UTC or IST
+
+  // Convert UTC timestamp to IST (adds 5 hours 30 minutes)
+  const convertToIST = (utcTimestamp) => {
+    if (!utcTimestamp) return utcTimestamp
+    const date = new Date(utcTimestamp)
+    // Add 5 hours 30 minutes (IST offset)
+    const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000))
+    // Return in ISO format with +05:30 timezone indicator
+    return istDate.toISOString().replace('Z', '+05:30')
+  }
+
+  // Convert IST timestamp to UTC (subtracts 5 hours 30 minutes)
+  const convertToUTC = (istTimestamp) => {
+    if (!istTimestamp) return istTimestamp
+    // Input is expected to be a datetime-local value (no timezone info)
+    // Treat it as IST by subtracting the IST offset
+    const date = new Date(istTimestamp)
+    // Subtract 5 hours 30 minutes (IST offset) to get UTC
+    const utcDate = new Date(date.getTime() - (5.5 * 60 * 60 * 1000))
+    return utcDate.toISOString()
+  }
+
+  // Get display timestamp based on selected timezone
+  const getDisplayTimestamp = (utcTimestamp) => {
+    if (timezone === 'IST') {
+      return convertToIST(utcTimestamp)
+    }
+    return utcTimestamp
+  }
 
   const parseMessageTimestamp = (message) => {
     const aliceMatch = message.match(/^\d+:\|(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)[+-]\d{2}:\d{2}\|/)
@@ -248,18 +278,23 @@ function App() {
         const logTime = new Date(log._timestamp).getTime()
 
         if (timeFilter.start && timeFilter.end) {
-          const startTime = new Date(timeFilter.start).getTime()
-          const endTime = new Date(timeFilter.end).getTime()
+          // Convert filter times from IST to UTC if timezone is IST
+          const startTimeInput = timezone === 'IST' ? convertToUTC(timeFilter.start) : timeFilter.start
+          const endTimeInput = timezone === 'IST' ? convertToUTC(timeFilter.end) : timeFilter.end
+          const startTime = new Date(startTimeInput).getTime()
+          const endTime = new Date(endTimeInput).getTime()
           return logTime >= startTime && logTime <= endTime
         }
 
         if (timeFilter.start) {
-          const startTime = new Date(timeFilter.start).getTime()
+          const startTimeInput = timezone === 'IST' ? convertToUTC(timeFilter.start) : timeFilter.start
+          const startTime = new Date(startTimeInput).getTime()
           return logTime >= startTime
         }
 
         if (timeFilter.end) {
-          const endTime = new Date(timeFilter.end).getTime()
+          const endTimeInput = timezone === 'IST' ? convertToUTC(timeFilter.end) : timeFilter.end
+          const endTime = new Date(endTimeInput).getTime()
           return logTime <= endTime
         }
 
@@ -684,6 +719,18 @@ function App() {
         </div>
 
         <div className="header-actions">
+          <div className="timezone-selector">
+            <label htmlFor="timezone-select">Timezone:</label>
+            <select 
+              id="timezone-select"
+              value={timezone} 
+              onChange={(e) => setTimezone(e.target.value)}
+              className="timezone-select"
+            >
+              <option value="UTC">UTC</option>
+              <option value="IST">IST (UTC+5:30)</option>
+            </select>
+          </div>
           <button 
             className="help-btn" 
             onClick={() => setShowHelp(true)} 
@@ -795,7 +842,7 @@ function App() {
             </div>
 
             <div className="time-filter">
-              <label>Time:</label>
+              <label>Time ({timezone}):</label>
               <input
                 type="datetime-local"
                 step="0.001"
@@ -847,8 +894,15 @@ function App() {
               onSelectLog={setSelectedLog}
               searchMatches={searchMatches}
               currentMatchIndex={currentMatchIndex}
+              timezone={timezone}
+              getDisplayTimestamp={getDisplayTimestamp}
             />
-            <LogDetails log={selectedLog} searchQuery={searchQuery} />
+            <LogDetails 
+              log={selectedLog} 
+              searchQuery={searchQuery} 
+              timezone={timezone}
+              getDisplayTimestamp={getDisplayTimestamp}
+            />
           </div>
           <Footer logCount={allLogs.length} />
         </>
