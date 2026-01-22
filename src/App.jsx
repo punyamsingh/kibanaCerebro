@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 import Timeline from './components/Timeline'
 import LogDetails from './components/LogDetails'
@@ -21,48 +21,6 @@ function App() {
   const timelineRef = useRef(null)
   const matchInputRef = useRef(null)
   const [showHelp, setShowHelp] = useState(false)
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Don't trigger shortcuts if user is typing in an input
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return
-      }
-
-      // ESC - Clear selection or close help
-      if (e.key === 'Escape') {
-        if (showHelp) {
-          setShowHelp(false)
-        } else if (selectedLog) {
-          setSelectedLog(null)
-        }
-        return
-      }
-
-      // ? - Show help
-      if (e.key === '?' && !showHelp) {
-        e.preventDefault()
-        setShowHelp(true)
-        return
-      }
-
-      // Arrow keys for search navigation
-      if (searchMatches.length > 0) {
-        if (e.key === 'ArrowRight' || e.key === 'n') {
-          e.preventDefault()
-          handleNextMatch()
-        } else if (e.key === 'ArrowLeft' || e.key === 'p') {
-          e.preventDefault()
-          handlePreviousMatch()
-        }
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLog, showHelp, searchMatches.length, currentMatchIndex])
 
   const parseMessageTimestamp = (message) => {
     const aliceMatch = message.match(/^\d+:\|(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)[+-]\d{2}:\d{2}\|/)
@@ -512,7 +470,7 @@ function App() {
     console.log(`Found ${matches.length} matches for "${searchQuery}"`)
   }
 
-  const handleNextMatch = () => {
+  const handleNextMatch = useCallback(() => {
     if (searchMatches.length === 0) return
 
     const nextIndex = (currentMatchIndex + 1) % searchMatches.length
@@ -526,9 +484,9 @@ function App() {
       // In "show all" mode, scroll to the original index in all logs
       timelineRef.current.scrollToLog(showOnlyMatches ? nextIndex : logIndex)
     }
-  }
+  }, [searchMatches, currentMatchIndex, allLogs, showOnlyMatches])
 
-  const handlePreviousMatch = () => {
+  const handlePreviousMatch = useCallback(() => {
     if (searchMatches.length === 0) return
 
     const prevIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length
@@ -542,7 +500,7 @@ function App() {
       // In "show all" mode, scroll to the original index in all logs
       timelineRef.current.scrollToLog(showOnlyMatches ? prevIndex : logIndex)
     }
-  }
+  }, [searchMatches, currentMatchIndex, allLogs, showOnlyMatches])
 
   const handleToggleShowMode = () => {
     const newMode = !showOnlyMatches
@@ -602,6 +560,47 @@ function App() {
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
   }
+
+  // Keyboard shortcuts - defined after the handler functions
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger shortcuts if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return
+      }
+
+      // ESC - Clear selection or close help
+      if (e.key === 'Escape') {
+        if (showHelp) {
+          setShowHelp(false)
+        } else if (selectedLog) {
+          setSelectedLog(null)
+        }
+        return
+      }
+
+      // ? - Show help
+      if (e.key === '?' && !showHelp) {
+        e.preventDefault()
+        setShowHelp(true)
+        return
+      }
+
+      // Arrow keys for search navigation
+      if (searchMatches.length > 0) {
+        if (e.key === 'ArrowRight' || e.key === 'n') {
+          e.preventDefault()
+          handleNextMatch()
+        } else if (e.key === 'ArrowLeft' || e.key === 'p') {
+          e.preventDefault()
+          handlePreviousMatch()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedLog, showHelp, searchMatches.length, currentMatchIndex, handleNextMatch, handlePreviousMatch])
 
   return (
     <div className="app">

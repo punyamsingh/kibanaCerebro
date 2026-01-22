@@ -8,12 +8,13 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true }
+    return { hasError: true, error }
   }
 
   componentDidCatch(error, errorInfo) {
     console.error('Error caught by boundary:', error, errorInfo)
-    this.setState({ hasError: true, error, errorInfo })
+    // Update error info separately as it's not available in getDerivedStateFromError
+    this.setState({ errorInfo })
   }
 
   handleReset = () => {
