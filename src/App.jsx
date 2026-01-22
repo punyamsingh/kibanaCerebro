@@ -29,14 +29,17 @@ function App() {
     const date = new Date(utcTimestamp)
     // Add 5 hours 30 minutes (IST offset)
     const istDate = new Date(date.getTime() + (5.5 * 60 * 60 * 1000))
-    return istDate.toISOString().replace('Z', '')
+    // Return in ISO format with +05:30 timezone indicator
+    return istDate.toISOString().replace('Z', '+05:30')
   }
 
   // Convert IST timestamp to UTC (subtracts 5 hours 30 minutes)
   const convertToUTC = (istTimestamp) => {
     if (!istTimestamp) return istTimestamp
+    // Input is expected to be a datetime-local value (no timezone info)
+    // Treat it as IST by subtracting the IST offset
     const date = new Date(istTimestamp)
-    // Subtract 5 hours 30 minutes (IST offset)
+    // Subtract 5 hours 30 minutes (IST offset) to get UTC
     const utcDate = new Date(date.getTime() - (5.5 * 60 * 60 * 1000))
     return utcDate.toISOString()
   }
