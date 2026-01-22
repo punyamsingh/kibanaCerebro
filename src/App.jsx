@@ -61,7 +61,8 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedLog, showHelp, searchMatches, currentMatchIndex])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLog, showHelp, searchMatches.length, currentMatchIndex])
 
   const parseMessageTimestamp = (message) => {
     const aliceMatch = message.match(/^\d+:\|(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)[+-]\d{2}:\d{2}\|/)
