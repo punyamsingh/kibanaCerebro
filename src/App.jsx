@@ -600,7 +600,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedLog, showHelp, searchMatches.length, currentMatchIndex, handleNextMatch, handlePreviousMatch])
+  }, [selectedLog, showHelp, searchMatches, currentMatchIndex, handleNextMatch, handlePreviousMatch])
 
   return (
     <div className="app">
