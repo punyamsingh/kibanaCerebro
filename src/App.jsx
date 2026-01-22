@@ -680,7 +680,7 @@ function App() {
       <header className="app-header">
         <div className="header-left">
           <h1>Log Viewer - Timeline</h1>
-          {fileName && <span className="file-name">File: {fileName}</span>}
+          {fileName && <span className="file-name" role="status" aria-live="polite">File: {fileName}</span>}
         </div>
 
         <div className="header-actions">
@@ -688,9 +688,9 @@ function App() {
             className="help-btn" 
             onClick={() => setShowHelp(true)} 
             title="Keyboard shortcuts (Press ?)"
-            aria-label="Show help"
+            aria-label="Show help and keyboard shortcuts"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
               <circle cx="12" cy="12" r="10" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -700,9 +700,9 @@ function App() {
               className="export-btn" 
               onClick={handleExportLogs}
               title="Export filtered logs to JSON"
-              aria-label="Export logs"
+              aria-label={`Export ${logs.length} logs to JSON`}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               Export ({logs.length})

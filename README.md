@@ -1,6 +1,6 @@
 # Log Viewer - Timeline
 
-A beautiful timeline-based log viewer for visualizing and analyzing JSON logs.
+A beautiful timeline-based log viewer for visualizing and analyzing JSON logs with advanced search, keyboard shortcuts, and export capabilities.
 
 ## Features
 
@@ -9,6 +9,7 @@ A beautiful timeline-based log viewer for visualizing and analyzing JSON logs.
 - **Optimized for 9000+ logs** - Smooth rendering with React.useMemo
 - **Smart lane assignment** - Prevents overlapping with 4-lane layout
 - **Efficient rendering** - Only recalculates on zoom/data changes
+- **Virtual scrolling** - Only renders visible logs for better performance
 
 ### 📊 Timeline Visualization
 
@@ -27,7 +28,7 @@ A beautiful timeline-based log viewer for visualizing and analyzing JSON logs.
 
 ### 🎨 Visual Features
 
-- **Color-coded events**: Red (errors), Orange (warnings), Green (API), Gray (info)
+- **Color-coded events**: Red (errors), Orange (warnings), Purple (payment), Blue (cart), Green (API), Gray (info)
 - **Interactive boxes**: Click any log to view full JSON details
 - **Hover effects**: Scale animation and full tag name in tooltip
 - **Selection state**: Highlighted border for selected logs
@@ -38,6 +39,28 @@ A beautiful timeline-based log viewer for visualizing and analyzing JSON logs.
 - **Structured summary** - Tag, level, type, service at a glance
 - **Copy to clipboard** - One-click copy of log data
 - **Request ID tracking** - Full tracing information
+- **Search highlighting** - Matched terms highlighted in log details
+
+### ⌨️ Keyboard Shortcuts
+
+- **`?`** - Show help dialog with all shortcuts
+- **`ESC`** - Close dialog or clear selection
+- **`→` or `n`** - Next search match
+- **`←` or `p`** - Previous search match
+
+### 🔍 Advanced Search
+
+- **Boolean operators**: Use `AND`, `OR` for complex queries
+- **Quoted phrases**: Use `"exact phrase"` for exact matching
+- **Parentheses**: Group conditions like `(error OR warn) AND payment`
+- **Toggle view**: Show all logs or only matching logs
+- **Match navigation**: Jump between matches with keyboard or buttons
+
+### 📤 Export & Import
+
+- **Export to JSON** - Save filtered logs with timestamp in filename
+- **Drag & drop upload** - Easy file uploading
+- **Auto-detection** - Automatically detects log format and timestamps
 
 ## Getting Started
 
