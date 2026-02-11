@@ -83,8 +83,7 @@ const FileUpload = ({ onFileUpload }) => {
       }
 
       // Create a virtual file object from clipboard JSON
-      const blob = new Blob([pastedText], { type: 'application/json' })
-      const file = new File([blob], 'pasted-logs.json', { type: 'application/json' })
+      const file = new File([pastedText], 'pasted-logs.json', { type: 'application/json' })
       
       showNotification('JSON logs pasted successfully!', 'success')
       onFileUpload(file)
