@@ -6,6 +6,44 @@
   justify-content: center;
   padding: 3rem;
   gap: 3rem;
+  position: relative;
+}
+
+/* Notification Toast */
+.notification {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  background: #161b22;
+  border: 1px solid;
+  color: #c9d1d9;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notification.success {
+  border-color: #2ea043;
+  background: linear-gradient(135deg, #1c2f24 0%, #161b22 100%);
+}
+
+.notification.error {
+  border-color: #da3633;
+  background: linear-gradient(135deg, #3a1f1f 0%, #161b22 100%);
 }
 
 .upload-area {
@@ -55,6 +93,20 @@
   font-size: 1rem;
 }
 
+/* Keyboard key style */
+kbd {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.85rem;
+  font-family: monospace;
+  line-height: 1.2;
+  color: #c9d1d9;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
 .supported-formats {
   padding: 0.75rem 1.5rem;
   background: #0d1117;
@@ -92,6 +144,10 @@
 
 .instructions li {
   margin-bottom: 0.5rem;
+}
+
+.instructions kbd {
+  margin: 0 0.2rem;
 }
 
 .example {
