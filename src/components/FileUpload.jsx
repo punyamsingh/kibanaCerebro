@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import './FileUpload.css'
 
 const FileUpload = ({ onFileUpload }) => {
   const fileInputRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [notification, setNotification] = useState(null)
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -40,8 +41,67 @@ const FileUpload = ({ onFileUpload }) => {
     fileInputRef.current.click()
   }
 
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type })
+    setTimeout(() => setNotification(null), 3000)
+  }
+
+  const handlePaste = async (e) => {
+    e.preventDefault()
+    
+    try {
+      // Get clipboard data
+      const clipboardData = e.clipboardData || window.clipboardData
+      const pastedText = clipboardData.getData('text')
+      
+      if (!pastedText.trim()) {
+        showNotification('Clipboard is empty', 'error')
+        return
+      }
+
+      // Validate JSON
+      let jsonData
+      try {
+        jsonData = JSON.parse(pastedText)
+      } catch (parseError) {
+        showNotification('Invalid JSON in clipboard. Please copy valid JSON data.', 'error')
+        return
+      }
+
+      // Create a virtual file object from clipboard JSON
+      const blob = new Blob([pastedText], { type: 'application/json' })
+      const file = new File([blob], 'pasted-logs.json', { type: 'application/json' })
+      
+      showNotification('JSON logs pasted successfully!', 'success')
+      onFileUpload(file)
+    } catch (error) {
+      console.error('Error handling paste:', error)
+      showNotification('Error processing pasted data', 'error')
+    }
+  }
+
+  useEffect(() => {
+    // Add paste event listener to document
+    const handleDocumentPaste = (e) => {
+      handlePaste(e)
+    }
+
+    document.addEventListener('paste', handleDocumentPaste)
+    
+    return () => {
+      document.removeEventListener('paste', handleDocumentPaste)
+    }
+  }, [])
+
   return (
     <div className="file-upload-container">
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
       <div
         className={`upload-area ${isDragging ? 'dragging' : ''}`}
         onDragOver={handleDragOver}
@@ -54,7 +114,7 @@ const FileUpload = ({ onFileUpload }) => {
         </svg>
 
         <h2>Upload Log File</h2>
-        <p>Drag and drop your JSON log file here, or click to browse</p>
+        <p>Drag and drop your JSON log file here, click to browse, or press <kbd>Ctrl+V</kbd> to paste JSON</p>
 
         <div className="supported-formats">
           <span>Supported format: JSON (.json)</span>
@@ -73,6 +133,7 @@ const FileUpload = ({ onFileUpload }) => {
         <h3>How to use:</h3>
         <ol>
           <li>Upload a JSON file containing your logs</li>
+          <li><strong>OR</strong> Copy JSON to clipboard and press <kbd>Ctrl+V</kbd> (or <kbd>Cmd+V</kbd> on Mac)</li>
           <li>The timeline will automatically arrange logs based on timestamps</li>
           <li>Scroll left/right or drag to navigate through the timeline</li>
           <li>Click on any log marker to view its details</li>
