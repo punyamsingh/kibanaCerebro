@@ -47,6 +47,12 @@ const FileUpload = ({ onFileUpload }) => {
   }, [])
 
   const handlePaste = useCallback((e) => {
+    // Don't interfere with paste in input/textarea elements
+    const target = e.target
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return
+    }
+    
     e.preventDefault()
     
     try {
