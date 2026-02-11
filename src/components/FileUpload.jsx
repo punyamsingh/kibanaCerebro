@@ -5,6 +5,7 @@ const FileUpload = ({ onFileUpload }) => {
   const fileInputRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
   const [notification, setNotification] = useState(null)
+  const notificationTimeoutRef = useRef(null)
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -42,8 +43,16 @@ const FileUpload = ({ onFileUpload }) => {
   }
 
   const showNotification = useCallback((message, type = 'success') => {
+    // Clear any existing timeout
+    if (notificationTimeoutRef.current) {
+      clearTimeout(notificationTimeoutRef.current)
+    }
+    
     setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
+    notificationTimeoutRef.current = setTimeout(() => {
+      setNotification(null)
+      notificationTimeoutRef.current = null
+    }, 3000)
   }, [])
 
   const handlePaste = useCallback((e) => {
@@ -65,10 +74,9 @@ const FileUpload = ({ onFileUpload }) => {
         return
       }
 
-      // Validate JSON
-      let jsonData
+      // Validate JSON format
       try {
-        jsonData = JSON.parse(pastedText)
+        JSON.parse(pastedText)
       } catch (parseError) {
         showNotification('Invalid JSON in clipboard. Please copy valid JSON data.', 'error')
         return
@@ -92,6 +100,10 @@ const FileUpload = ({ onFileUpload }) => {
     
     return () => {
       document.removeEventListener('paste', handlePaste)
+      // Clean up notification timeout on unmount
+      if (notificationTimeoutRef.current) {
+        clearTimeout(notificationTimeoutRef.current)
+      }
     }
   }, [handlePaste])
 
