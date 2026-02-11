@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback } from 'react'
 import './FileUpload.css'
 
 const FileUpload = ({ onFileUpload }) => {
@@ -41,12 +41,12 @@ const FileUpload = ({ onFileUpload }) => {
     fileInputRef.current.click()
   }
 
-  const showNotification = (message, type = 'success') => {
+  const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type })
     setTimeout(() => setNotification(null), 3000)
-  }
+  }, [])
 
-  const handlePaste = async (e) => {
+  const handlePaste = useCallback((e) => {
     e.preventDefault()
     
     try {
@@ -78,7 +78,7 @@ const FileUpload = ({ onFileUpload }) => {
       console.error('Error handling paste:', error)
       showNotification('Error processing pasted data', 'error')
     }
-  }
+  }, [showNotification, onFileUpload])
 
   useEffect(() => {
     // Add paste event listener to document
@@ -91,7 +91,7 @@ const FileUpload = ({ onFileUpload }) => {
     return () => {
       document.removeEventListener('paste', handleDocumentPaste)
     }
-  }, [])
+  }, [handlePaste])
 
   return (
     <div className="file-upload-container">
