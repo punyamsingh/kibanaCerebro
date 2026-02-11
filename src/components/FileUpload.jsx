@@ -82,14 +82,10 @@ const FileUpload = ({ onFileUpload }) => {
 
   useEffect(() => {
     // Add paste event listener to document
-    const handleDocumentPaste = (e) => {
-      handlePaste(e)
-    }
-
-    document.addEventListener('paste', handleDocumentPaste)
+    document.addEventListener('paste', handlePaste)
     
     return () => {
-      document.removeEventListener('paste', handleDocumentPaste)
+      document.removeEventListener('paste', handlePaste)
     }
   }, [handlePaste])
 
@@ -114,7 +110,7 @@ const FileUpload = ({ onFileUpload }) => {
         </svg>
 
         <h2>Upload Log File</h2>
-        <p>Drag and drop your JSON log file here, click to browse, or press <kbd>Ctrl+V</kbd> to paste JSON</p>
+        <p>Drag and drop your JSON log file here, click to browse, or press <kbd>Ctrl+V</kbd> (<kbd>Cmd+V</kbd> on Mac) to paste JSON</p>
 
         <div className="supported-formats">
           <span>Supported format: JSON (.json)</span>
