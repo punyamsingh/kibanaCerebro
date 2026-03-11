@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo, forwardRef, useImperativeHandle } from 'react'
 import './Timeline.css'
 
-const Timeline = forwardRef(({ logs, selectedLog, onSelectLog, searchMatches = [], currentMatchIndex = -1 }, ref) => {
+const Timeline = forwardRef(({ logs, selectedLog, onSelectLog, searchMatches = [], currentMatchIndex = -1, timezone = 'UTC', getDisplayTimestamp }, ref) => {
   const scrollContainerRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
   const [startX, setStartX] = useState(0)
@@ -130,24 +130,28 @@ const Timeline = forwardRef(({ logs, selectedLog, onSelectLog, searchMatches = [
   // Format timestamp - just extract and show as-is from the ISO format
   const formatTime = (timestamp) => {
     if (!timestamp || typeof timestamp !== 'string') return ''
-    // timestamp is like "2025-10-15T07:33:22.667" or "2025-10-15T07:28:13.209195172+00:00"
+    // Convert to display timezone if function is provided
+    const displayTimestamp = getDisplayTimestamp ? getDisplayTimestamp(timestamp) : timestamp
+    // displayTimestamp is like "2025-10-15T07:33:22.667" or "2025-10-15T07:28:13.209195172+00:00"
     // Extract just the time part: HH:MM:SS.mmm
-    const timeMatch = timestamp.match(/T(\d{2}:\d{2}:\d{2}\.\d+)/)
+    const timeMatch = displayTimestamp.match(/T(\d{2}:\d{2}:\d{2}\.\d+)/)
     if (timeMatch) {
       return timeMatch[1]
     }
-    return timestamp
+    return displayTimestamp
   }
 
   const formatDate = (timestamp) => {
     if (!timestamp || typeof timestamp !== 'string') return ''
-    // timestamp is like "2025-10-15T07:33:22.667"
+    // Convert to display timezone if function is provided
+    const displayTimestamp = getDisplayTimestamp ? getDisplayTimestamp(timestamp) : timestamp
+    // displayTimestamp is like "2025-10-15T07:33:22.667"
     // Extract the date part: YYYY-MM-DD
-    const dateMatch = timestamp.match(/^(\d{4}-\d{2}-\d{2})/)
+    const dateMatch = displayTimestamp.match(/^(\d{4}-\d{2}-\d{2})/)
     if (dateMatch) {
       return dateMatch[1]
     }
-    return timestamp
+    return displayTimestamp
   }
 
   // Get log type/category for color coding
@@ -281,14 +285,14 @@ const Timeline = forwardRef(({ logs, selectedLog, onSelectLog, searchMatches = [
     <div className="timeline-container">
       <div className="timeline-header">
         <div className="timeline-info">
-          <h2>Timeline ({logs.length} logs)</h2>
+          <h2>Timeline ({logs.length} logs) - {timezone}</h2>
           {minDate && maxDate && (
             <div className="time-range">
               <span className="time-label">Start:</span>
-              <span className="time-value">{formatTime(minDate)} {formatDate(minDate)}</span>
+              <span className="time-value">{formatTime(minDate.toISOString())} {formatDate(minDate.toISOString())}</span>
               <span className="separator">→</span>
               <span className="time-label">End:</span>
-              <span className="time-value">{formatTime(maxDate)} {formatDate(maxDate)}</span>
+              <span className="time-value">{formatTime(maxDate.toISOString())} {formatDate(maxDate.toISOString())}</span>
               <span className="separator">|</span>
               <span className="time-label">Duration:</span>
               <span className="time-value">{((maxTime - minTime) / 1000).toFixed(2)}s</span>

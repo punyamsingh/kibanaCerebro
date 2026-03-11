@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './LogDetails.css'
 
-const LogDetails = ({ log, searchQuery = '' }) => {
+const LogDetails = ({ log, searchQuery = '', timezone = 'UTC', getDisplayTimestamp }) => {
   const [copied, setCopied] = useState(false)
 
   if (!log) {
@@ -19,6 +19,10 @@ const LogDetails = ({ log, searchQuery = '' }) => {
   }
 
   const formatTimestamp = (timestamp) => {
+    // Convert to display timezone if function is provided, otherwise return as-is
+    if (getDisplayTimestamp) {
+      return getDisplayTimestamp(timestamp)
+    }
     // Just return the timestamp as-is (it's already in the format we want)
     // e.g. "2025-10-15T07:33:22.667" or "2025-10-15T07:28:13.209195172+00:00"
     return timestamp
